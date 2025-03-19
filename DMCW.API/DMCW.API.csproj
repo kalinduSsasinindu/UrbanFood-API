@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DMCW.Repository\DMCW.Repository.csproj" />
+    <ProjectReference Include="..\DMCW.ServiceInterface\DMCW.ServiceInterface.csproj" />
   </ItemGroup>
 
 </Project>

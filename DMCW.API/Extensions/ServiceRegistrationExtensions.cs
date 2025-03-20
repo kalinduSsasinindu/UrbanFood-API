@@ -1,11 +1,17 @@
 ﻿
 
+using DMCW.Repository.Data.DataService;
+using DMCW.Service.Services;
+using DMCW.ServiceInterface.Interfaces;
+
 namespace DMCW.API.Extensions
 {
     public static class ServiceRegistrationExtensions
     {
         public static void RegisterServices(this IServiceCollection services)
         {
+            services.AddScoped<MongoDBContext>();
+            services.AddScoped<IUserService, UserService>();
             /*services.AddSingleton<BlobService>();
             services.AddScoped<IBusinessUnitService, BusinessUnitService>();
             services.AddScoped<IOrderService, OrderService>();
@@ -13,13 +19,13 @@ namespace DMCW.API.Extensions
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ISearchService, SearchService>();
             services.AddScoped<ICustomerService, CustomerService>();
-            services.AddScoped<IUserService, UserService>();
+            
             services.AddScoped<IRefService, RefService>();
             services.AddScoped<IPrintService, PrintService>();
             services.AddScoped<ITrackingService, TrackingService>();
             services.AddScoped<IUtilityService, UtilityService>();
             services.AddScoped<AuthorizationContext>();
-            services.AddScoped<MongoDBContext>();
+            
             services.AddScoped<IAuthorizationService, AuthorizationService>();
             services.AddSingleton<INotificationService, NotificationService>();
 

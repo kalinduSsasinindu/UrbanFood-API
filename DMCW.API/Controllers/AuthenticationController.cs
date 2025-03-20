@@ -3,6 +3,7 @@ using DMCW.API.Dtos.Configuration;
 using DMCW.API.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace DMCW.API.Controllers
@@ -13,14 +14,15 @@ namespace DMCW.API.Controllers
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly AuthenticationSettings _authSettings;
-
-        public AuthenticationController(IHttpClientFactory httpClientFactory, IOptions<AuthenticationSettings> authSettings)
+        private readonly ILogger<AuthenticationController> _logger;
+        public AuthenticationController(IHttpClientFactory httpClientFactory, IOptions<AuthenticationSettings> authSettings, ILogger<AuthenticationController> logger)
         {
             _httpClientFactory = httpClientFactory;
             _authSettings = authSettings.Value;
+            _logger = logger;
         }
 
-        [Authorize]
+        
         [HttpGet("login")]
         public IActionResult Login()
         {
@@ -43,9 +45,19 @@ namespace DMCW.API.Controllers
 
         [HttpPost("exchange-code")]
         public async Task<IActionResult> ExchangeCodeForToken([FromBody] ExchangeCodeRequest request)
+
         {
-            var codeVerifier = request.CodeVerifier; // Get from request
-            var authCode = request.AuthCode; // Get from request
+            _logger.LogInformation("Received exchange request: {@Request}", request);
+
+            var codeVerifier = request.CodeVerifier;
+            var authCode = request.AuthCode;
+
+            if (string.IsNullOrEmpty(codeVerifier) || string.IsNullOrEmpty(authCode))
+            {
+                _logger.LogError("Missing required parameters: CodeVerifier or AuthCode");
+                return BadRequest("Missing required parameters");
+            }
+           
 
             var clientId = _authSettings.Google.ClientId;
 

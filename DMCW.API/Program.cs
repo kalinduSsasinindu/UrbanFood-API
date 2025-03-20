@@ -18,6 +18,7 @@ builder.Services.Configure<ApplicationInsightsServiceOptions>(options =>
     options.ConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
 });
 
+
 // Add logging configuration
 builder.Logging.AddApplicationInsights();
 

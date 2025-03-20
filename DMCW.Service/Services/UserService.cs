@@ -7,8 +7,6 @@ using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
 
 namespace DMCW.Service.Services
 {

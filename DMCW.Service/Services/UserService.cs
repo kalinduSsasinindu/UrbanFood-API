@@ -37,8 +37,8 @@ namespace DMCW.Service.Services
                 throw new InvalidOperationException("User email claim not found.");
             }
 
-            var filter = Builders<User>.Filter.Eq("Email", userEmail);
-            var existingUser = await _context.Users.Find(filter).FirstOrDefaultAsync();
+            // Use the new method that doesn't apply the ClientId filter
+            var existingUser = await _context.Users.FindByEmailAsync(userEmail);
 
             if (existingUser != null)
             {

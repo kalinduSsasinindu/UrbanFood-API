@@ -129,6 +129,16 @@ namespace DMCW.Repository.Data.DataService
             // Insert all documents into the collection
             await _collection.InsertManyAsync(documents);
         }
+        public async Task<T> FindByEmailAsync(string email)
+        {
+            // Only filter by email and IsDeleted, ignore ClientId
+            var filter = Builders<T>.Filter.And(
+                Builders<T>.Filter.Eq("Email", email),
+                Builders<T>.Filter.Eq("IsDeleted", false)
+            );
+            // Use _collection directly to bypass the ClientId filter
+            return await _collection.Find(filter).FirstOrDefaultAsync();
+        }
 
     }
 }

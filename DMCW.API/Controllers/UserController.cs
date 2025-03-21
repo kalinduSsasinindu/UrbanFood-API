@@ -1,4 +1,5 @@
-﻿using DMCW.ServiceInterface.Interfaces;
+﻿using DMCW.ServiceInterface.Dtos.User;
+using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,27 +37,27 @@ namespace DMCW.API.Controllers
             }
         }
 
-       /* [Authorize]
-        [HttpPut("profile")]
-        public async Task<IActionResult> UpdateProfile([FromBody] UserProfileUpdateDto profile)
-        {
-            try
-            {
-                var success = await _userService.UpdateUserProfile(profile);
-                return success
-                    ? Ok(new { Message = "Profile updated successfully" })
-                    : StatusCode(500, "Failed to update profile");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating user profile");
-                return StatusCode(500, "An error occurred while updating user profile");
-            }
-        }
-       */
+        /* [Authorize]
+         [HttpPut("profile")]
+         public async Task<IActionResult> UpdateProfile([FromBody] UserProfileUpdateDto profile)
+         {
+             try
+             {
+                 var success = await _userService.UpdateUserProfile(profile);
+                 return success
+                     ? Ok(new { Message = "Profile updated successfully" })
+                     : StatusCode(500, "Failed to update profile");
+             }
+             catch (Exception ex)
+             {
+                 _logger.LogError(ex, "Error updating user profile");
+                 return StatusCode(500, "An error occurred while updating user profile");
+             }
+         }
+        */
         [Authorize]
         [HttpPost("become-seller")]
-        public async Task<IActionResult> BecomeSeller()
+        public async Task<IActionResult> BecomeSeller([FromBody] UserServiceDto userDto)
         {
             try
             {
@@ -66,9 +67,9 @@ namespace DMCW.API.Controllers
                     return BadRequest("User is already a seller");
                 }
 
-                var success = await _userService.UpdateUserRole(user.Id, "Seller");
+                var success = await _userService.UpdateUserToSeller(userDto);
                 return success
-                    ? Ok(new { Message = "Successfully updated to seller role" })
+                    ? Ok(new { Message = "Successfully updated to seller role", User = userDto })
                     : StatusCode(500, "Failed to update user role");
             }
             catch (Exception ex)

@@ -74,27 +74,22 @@ namespace DMCW.Service.Services
         }
 
 
-        public async Task<bool> UpdateUserRole(string userId, string newRole)
+        public async Task<bool> UpdateUserToSeller(UserServiceDto userDto)
         {
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userDto.Id))
             {
                 throw new ArgumentException("User ID cannot be null or empty");
             }
 
-            if (newRole != "Customer" && newRole != "Seller" && newRole != "Admin")
-            {
-                throw new ArgumentException("Invalid role. Role must be Customer, Seller, or Admin.");
-            }
-
-            var filter = Builders<User>.Filter.Eq(u => u.Id, userId);
+            var filter = Builders<User>.Filter.Eq(u => u.Id, userDto.Id);
             var update = Builders<User>.Update
-                .Set(u => u.UserRole, newRole)
-                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+                .Set("UserRole", "Seller")
+                .Set("SellerProfile", userDto.SellerProfile)
+                .Set("UpdatedAt", DateTime.UtcNow);
 
             var result = await _context.Users.UpdateOneAsync(filter, update);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
-
         public async Task<bool> DeactivateUser(string userId)
         {
             if (string.IsNullOrEmpty(userId))
@@ -175,7 +170,8 @@ namespace DMCW.Service.Services
                 UserRole = "Customer",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                IsActive = true
+                IsActive = true,
+                IsDeleted = false,
             };
 
             await _context.Users.InsertOneAsync(newUser);

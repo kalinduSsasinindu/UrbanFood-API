@@ -1,11 +1,8 @@
-﻿
-using DMCW.ServiceInterface.Dtos.User;
+﻿using DMCW.ServiceInterface.Dtos.User;
 using Microsoft.AspNetCore.Http;
-
 
 namespace DMCW.ServiceInterface.Interfaces
 {
-
     public interface IUserService
     {
         // Core user methods
@@ -14,7 +11,8 @@ namespace DMCW.ServiceInterface.Interfaces
 
         // Account management
         //Task<bool> UpdateUserProfile(UserProfileUpdateDto profileUpdate);
-        Task<bool> UpdateUserRole(string userId, string newRole);
+        //Task<bool> UpdateUserRole(string userId, string newRole);
+        Task<bool> UpdateUserToSeller(UserServiceDto userDto);
         Task<bool> DeactivateUser(string userId);
 
         // Seller-specific methods
@@ -22,4 +20,3 @@ namespace DMCW.ServiceInterface.Interfaces
         //Task<bool> VerifySeller(string userId, bool isVerified);
     }
 }
-

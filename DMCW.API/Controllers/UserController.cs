@@ -1,5 +1,4 @@
-﻿using DMCW.ServiceInterface.Dtos.User.KlzTEch.Service.Interface.Dto;
-using DMCW.ServiceInterface.Interfaces;
+﻿using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +36,7 @@ namespace DMCW.API.Controllers
             }
         }
 
-        [Authorize]
+       /* [Authorize]
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UserProfileUpdateDto profile)
         {
@@ -54,7 +53,7 @@ namespace DMCW.API.Controllers
                 return StatusCode(500, "An error occurred while updating user profile");
             }
         }
-
+       */
         [Authorize]
         [HttpPost("become-seller")]
         public async Task<IActionResult> BecomeSeller()
@@ -78,48 +77,50 @@ namespace DMCW.API.Controllers
                 return StatusCode(500, "An error occurred while updating user role");
             }
         }
-
-        [Authorize]
-        [HttpPut("seller-profile")]
-        public async Task<IActionResult> UpdateSellerProfile([FromBody] SellerProfileUpdateDto sellerProfile)
-        {
-            try
-            {
-                var user = await _userService.GetUserByEmail();
-                if (user.UserRole != "Seller")
+        /*
+                [Authorize]
+                [HttpPut("seller-profile")]
+                public async Task<IActionResult> UpdateSellerProfile([FromBody] SellerProfileUpdateDto sellerProfile)
                 {
-                    return BadRequest("User is not a seller");
+                    try
+                    {
+                        var user = await _userService.GetUserByEmail();
+                        if (user.UserRole != "Seller")
+                        {
+                            return BadRequest("User is not a seller");
+                        }
+
+                        var success = await _userService.UpdateSellerProfile(user.Id, sellerProfile);
+                        return success
+                            ? Ok(new { Message = "Seller profile updated successfully" })
+                            : StatusCode(500, "Failed to update seller profile");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating seller profile");
+                        return StatusCode(500, "An error occurred while updating seller profile");
+                    }
                 }
+        
+              [Authorize(Roles = "Admin")]
+                [HttpPut("verify-seller/{userId}")]
+                public async Task<IActionResult> VerifySeller(string userId, [FromQuery] bool isVerified)
+                {
+                    try
+                    {
+                        var success = await _userService.VerifySeller(userId, isVerified);
+                        return success
+                            ? Ok(new { Message = $"Seller verification status updated to {isVerified}" })
+                            : StatusCode(500, "Failed to update seller verification status");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error updating seller verification status");
+                        return StatusCode(500, "An error occurred while updating seller verification status");
+                    }
+                }*/
 
-                var success = await _userService.UpdateSellerProfile(user.Id, sellerProfile);
-                return success
-                    ? Ok(new { Message = "Seller profile updated successfully" })
-                    : StatusCode(500, "Failed to update seller profile");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating seller profile");
-                return StatusCode(500, "An error occurred while updating seller profile");
-            }
-        }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPut("verify-seller/{userId}")]
-        public async Task<IActionResult> VerifySeller(string userId, [FromQuery] bool isVerified)
-        {
-            try
-            {
-                var success = await _userService.VerifySeller(userId, isVerified);
-                return success
-                    ? Ok(new { Message = $"Seller verification status updated to {isVerified}" })
-                    : StatusCode(500, "Failed to update seller verification status");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating seller verification status");
-                return StatusCode(500, "An error occurred while updating seller verification status");
-            }
-        }
 
         [Authorize(Roles = "Admin")]
         [HttpPut("deactivate/{userId}")]

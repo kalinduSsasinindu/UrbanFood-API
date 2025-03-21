@@ -1,26 +1,26 @@
 ﻿using AutoMapper;
 using DMCW.Repository.Data.Entities.User;
-using DMCW.ServiceInterface.Dtos.User.KlzTEch.Service.Interface.Dto;
+using DMCW.ServiceInterface.Dtos.User;
 
 namespace DMCW.API.Mappings
 {
-    using AutoMapper;
-    using DMCW.Repository.Data.Entities.User;
-
     public class MappingProfile : Profile
     {
         public MappingProfile()
         {
+            // Entity to DTO mappings
             CreateMap<User, UserServiceDto>();
             CreateMap<Address, AddressDto>();
-            CreateMap<GeoCoordinates, GeoCoordinatesDto>();
-            CreateMap<BusinessHours, BusinessHoursDto>();
+            CreateMap<SellerProfile, SellerProfileDto>();
+            CreateMap<StoreDetails, StoreDetailsDto>();
+            CreateMap<SellerReview, SellerReviewDto>();
 
-            // Reverse mappings if needed
+            // DTO to Entity mappings
             CreateMap<UserServiceDto, User>();
             CreateMap<AddressDto, Address>();
-            CreateMap<GeoCoordinatesDto, GeoCoordinates>();
-            CreateMap<BusinessHoursDto, BusinessHours>();
+            CreateMap<SellerProfileDto, SellerProfile>();
+            CreateMap<StoreDetailsDto, StoreDetails>();
+            CreateMap<SellerReviewDto, SellerReview>();
         }
     }
 }

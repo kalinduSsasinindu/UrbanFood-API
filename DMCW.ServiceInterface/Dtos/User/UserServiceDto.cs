@@ -1,72 +1,65 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DMCW.ServiceInterface.Dtos.User
 {
-    using System;
-    using System.Collections.Generic;
-
-    namespace KlzTEch.Service.Interface.Dto
+    public class UserServiceDto
     {
-        public class UserServiceDto
-        {
-            public string Id { get; set; }
-            public string GoogleId { get; set; }
-            public string ClientId { get; set; }
-            public string Email { get; set; }
-            public string Name { get; set; }
-            public string Phone { get; set; }
-            public string ProfilePictureUrl { get; set; }
-            public string UserRole { get; set; }
-            public AddressDto Address { get; set; }
-            public string StoreName { get; set; }
-            public string StoreDescription { get; set; }
-            public Dictionary<string, BusinessHoursDto> BusinessHours { get; set; }
-            public bool? IsVerifiedSeller { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public DateTime UpdatedAt { get; set; }
-            public DateTime? LastLoginDate { get; set; }
-            public bool IsEmailVerified { get; set; }
-            public bool IsActive { get; set; }
-        }
+        public string? Id { get; set; }
+        public string? ClientId { get; set; }
+        public string? Email { get; set; }
+        public string? Name { get; set; }
+        public string? Phone { get; set; }
+        public string? ProfilePictureUrl { get; set; }
+        public string? UserRole { get; set; } // "Customer", "Seller", or "Admin"
+        public AddressDto? Address { get; set; }
 
-        public class AddressDto
-        {
-            public string Street { get; set; }
-            public string City { get; set; }
-            public string State { get; set; }
-            public string ZipCode { get; set; }
-            public GeoCoordinatesDto Coordinates { get; set; }
-        }
+        // Seller-specific properties - all nullable
+        public SellerProfileDto? SellerProfile { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime? LastLoginDate { get; set; }
+        public bool? IsActive { get; set; }
+        public bool? IsDeleted { get; set; }
+    }
 
-        public class GeoCoordinatesDto
-        {
-            public double Latitude { get; set; }
-            public double Longitude { get; set; }
-        }
+    public class StoreDetailsDto
+    {
+        public string? StoreName { get; set; }
+        public string? StoreDescription { get; set; }
+    }
 
-        public class BusinessHoursDto
-        {
-            public string OpenTime { get; set; }
-            public string CloseTime { get; set; }
-            public bool IsClosed { get; set; }
-        }
+    public class AddressDto
+    {
+        public string? Street { get; set; }
+        public string? City { get; set; }
+        public string? State { get; set; }
+        public string? ZipCode { get; set; }
+    }
 
-        public class UserProfileUpdateDto
-        {
-            public string Name { get; set; }
-            public string Phone { get; set; }
-            public AddressDto Address { get; set; }
-        }
+    public class SellerProfileDto
+    {
+        public StoreDetailsDto? StoreDetails { get; set; }
+        public List<SellerReviewDto>? SellerReviews { get; set; }
+        public double? AverageRating { get; set; }
+        public bool? IsVerifiedSeller { get; set; }
+    }
 
-        public class SellerProfileUpdateDto
-        {
-            public string StoreName { get; set; }
-            public string StoreDescription { get; set; }
-            public Dictionary<string, BusinessHoursDto> BusinessHours { get; set; }
-        }
+    public class SellerReviewDto
+    {
+        public string? Id { get; set; }
+        public string? ReviewerId { get; set; }
+        public string? ReviewerName { get; set; }
+        public string? ReviewerProfilePicture { get; set; }
+        public string? SellerId { get; set; }
+        public int? Rating { get; set; }
+        public string? Comment { get; set; }
+        public List<string>? ReviewImages { get; set; }
+        public int? LikesCount { get; set; }
+        public bool? IsFeatured { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public bool? IsVerified { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

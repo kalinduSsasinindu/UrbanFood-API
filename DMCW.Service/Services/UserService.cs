@@ -2,7 +2,7 @@
 using DMCW.Repository.Data.DataService;
 using DMCW.Repository.Data.Entities.User;
 using DMCW.Service.Helper;
-using DMCW.ServiceInterface.Dtos.User.KlzTEch.Service.Interface.Dto;
+using DMCW.ServiceInterface.Dtos.User;
 using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -73,25 +73,6 @@ namespace DMCW.Service.Services
             throw new Exception("User record not found");
         }
 
-        public async Task<bool> UpdateUserProfile(UserProfileUpdateDto profileUpdate)
-        {
-            var userEmail = Utility.GetUserEmailFromClaims(_httpContextAccessor);
-
-            if (string.IsNullOrEmpty(userEmail))
-            {
-                throw new InvalidOperationException("User email claim not found.");
-            }
-
-            var filter = Builders<User>.Filter.Eq("Email", userEmail);
-            var update = Builders<User>.Update
-                .Set(u => u.Name, profileUpdate.Name)
-                .Set(u => u.Phone, profileUpdate.Phone)
-                .Set(u => u.Address, _mapper.Map<Address>(profileUpdate.Address))
-                .Set(u => u.UpdatedAt, DateTime.UtcNow);
-
-            var result = await _context.Users.UpdateOneAsync(filter, update);
-            return result.IsAcknowledged && result.ModifiedCount > 0;
-        }
 
         public async Task<bool> UpdateUserRole(string userId, string newRole)
         {
@@ -129,7 +110,26 @@ namespace DMCW.Service.Services
             var result = await _context.Users.UpdateOneAsync(filter, update);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
+        /*
+        public async Task<bool> UpdateUserProfile(UserProfileUpdateDto profileUpdate)
+        {
+            var userEmail = Utility.GetUserEmailFromClaims(_httpContextAccessor);
 
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                throw new InvalidOperationException("User email claim not found.");
+            }
+
+            var filter = Builders<User>.Filter.Eq("Email", userEmail);
+            var update = Builders<User>.Update
+                .Set(u => u.Name, profileUpdate.Name)
+                .Set(u => u.Phone, profileUpdate.Phone)
+                .Set(u => u.Address, _mapper.Map<Address>(profileUpdate.Address))
+                .Set(u => u.UpdatedAt, DateTime.UtcNow);
+
+            var result = await _context.Users.UpdateOneAsync(filter, update);
+            return result.IsAcknowledged && result.ModifiedCount > 0;
+        }
         public async Task<bool> UpdateSellerProfile(string userId, SellerProfileUpdateDto sellerProfile)
         {
             if (string.IsNullOrEmpty(userId))
@@ -163,7 +163,7 @@ namespace DMCW.Service.Services
             var result = await _context.Users.UpdateOneAsync(filter, update);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
-
+        */
         #region Private Methods
         private async Task<User> CreateNewUserAsync(string userEmail)
         {

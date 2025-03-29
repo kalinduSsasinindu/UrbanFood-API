@@ -67,6 +67,7 @@ namespace DMCW.API.Controllers
                     return BadRequest("User is already a seller");
                 }
 
+                userDto.Id = user.Id;
                 var success = await _userService.UpdateUserToSeller(userDto);
                 return success
                     ? Ok(new { Message = "Successfully updated to seller role", User = userDto })

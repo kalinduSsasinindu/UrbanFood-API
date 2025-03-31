@@ -58,8 +58,41 @@ namespace DMCW.API.Controllers
             var success = await _productService.UpdateProductAsync(product);
             return success ? Ok() : NotFound();
         }
+        [Authorize]
+        [HttpPatch("{id}/Options")]
+        public async Task<ActionResult> Update(string id, List<VariantOption> options)
+        {
+            var success = await _productService.Update(id, options);
+            if (success)
+            {
+                var variants = ProductVariantGenerator.GenerateProductVariants(options, null, null, null);
+                var isSuccess = await _productService.Update(id, variants);
+                return isSuccess ? Ok(variants) : NotFound();
+            }
+            else
+            {
+                return NotFound();
+            }
+        }
+        [Authorize]
+        [HttpPatch("{id}/Variants")]
+        public async Task<ActionResult> Update(string id, List<ProductVariant> variants)
+        {
+            var success = await _productService.Update(id, variants);
+            return success ? Ok() : NotFound();
+        }
+        [Authorize]
+        [HttpPost("GenerateVariants")]
+        public ActionResult<List<ProductVariant>> GenerateVariants([FromBody] List<VariantOption> options)
+        {
+            var baseSku = "BASE-SKU"; // Adjust according to your needs
+            var basePrice = 0.0m; // Adjust according to your needs
+            var baseAvailableQuantity = 100; // Adjust according to your needs
 
+            var variants = ProductVariantGenerator.GenerateProductVariants(options, baseSku, basePrice, baseAvailableQuantity);
 
+            return Ok(variants);
+        }
 
         [Authorize]
         [HttpPatch("{id}/titledescription")]

@@ -16,7 +16,8 @@ namespace DMCW.ServiceInterface.Interfaces
         Task<string> CreateProductAsync(Product product);
         Task<bool> UpdateProductAsync(Product product);
         Task<bool> DeleteProductAsync(string id);
-       
+        Task<bool> Update(string id, List<ProductVariant> Variants);
+        Task<bool> Update(string id, List<VariantOption> Options);
         Task<bool> Update(string id, string title, string description);
         Task<List<ProductSearchResponse>> SearchProductsAsync(string? query);
         Task<bool> UpdateProductMediaAsync(MediaServiceDto mediaServiceDto);

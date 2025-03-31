@@ -102,7 +102,20 @@ namespace DMCW.Service.Services
         }
 
 
-
+        public async Task<bool> Update(string id, List<ProductVariant> Variants)
+        {
+            var filter = Builders<Product>.Filter.Eq(x => x.Id, id);
+            var update = Builders<Product>.Update.Set(x => x.Variants, Variants);
+            var result = await _context.Products.UpdateOneAsync(filter, update);
+            return result.IsAcknowledged && result.ModifiedCount > 0;
+        }
+        public async Task<bool> Update(string id, List<VariantOption> Options)
+        {
+            var filter = Builders<Product>.Filter.Eq(x => x.Id, id);
+            var update = Builders<Product>.Update.Set(x => x.Options, Options);
+            var result = await _context.Products.UpdateOneAsync(filter, update);
+            return result.IsAcknowledged && result.ModifiedCount > 0;
+        }
         public async Task<List<ProductSearchResponse>> SearchProductsAsync(string? query)
         {
             var result = new List<Product>();

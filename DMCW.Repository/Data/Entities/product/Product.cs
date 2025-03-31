@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 namespace DMCW.Repository.Data.Entities.product
 {
     public class Product : BaseEntity
-    {
+    {/// <summary>
+    /// /
+    /// </summary>
        
         [BsonElement("Title"), BsonRepresentation(BsonType.String)]
         public string Title { get; set; }

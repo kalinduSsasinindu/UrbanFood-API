@@ -32,7 +32,6 @@ namespace DMCW.Repository.Data.Entities.product
         [BsonElement("Tags")]
         public List<string> Tags { get; set; }
 
-        [BsonElement("VendorId"), BsonRepresentation(BsonType.String)]
-        public string VendorId { get; set; }
+     
     }
 }

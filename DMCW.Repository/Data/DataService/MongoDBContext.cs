@@ -1,8 +1,10 @@
 ﻿using DMCW.Repository.Data.Entities;
+using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
+using Tag = DMCW.Repository.Data.Entities.Tags.Tag;
 
 namespace DMCW.Repository.Data.DataService
 {
@@ -23,8 +25,9 @@ namespace DMCW.Repository.Data.DataService
             return new FilteredMongoCollection<T>(_database.GetCollection<T>(collectionName), _httpContextAccessor);
         }
 
-    
+        public FilteredMongoCollection<Product> Products => GetFilteredCollection<Product>("Product");
         public FilteredMongoCollection<User> Users => GetFilteredCollection<User>("User");
+        public FilteredMongoCollection<Tag> Tags => GetFilteredCollection<Tag>("Tag");
         public FilteredMongoCollection<Sequence> Sequences => GetFilteredCollection<Sequence>("Sequence");
     }
 }

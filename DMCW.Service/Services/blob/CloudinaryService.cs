@@ -2,12 +2,7 @@
 using CloudinaryDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DMCW.Repository.Helper;
+
 namespace DMCW.Service.Services.blob
 {
 

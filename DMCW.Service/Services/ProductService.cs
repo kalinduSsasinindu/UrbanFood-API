@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
 using DMCW.Repository.Data.DataService;
 using DMCW.Repository.Data.Entities.product;
+using DMCW.Repository.Data.Entities.Search;
+using DMCW.Repository.Helper;
 using DMCW.Service.Helper;
 using DMCW.Service.Services.blob;
+using DMCW.ServiceInterface.Dtos;
 using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Driver;
+using Tag = DMCW.Repository.Data.Entities.Tags.Tag;
 
 
 namespace DMCW.Service.Services
@@ -16,7 +19,7 @@ namespace DMCW.Service.Services
     public class ProductService : IProductService
     {
         private readonly ILogger<ProductService> _logger;
-        private readonly BlobService _blobService;
+        private readonly CloudinaryService _blobService;
         private readonly MongoDBContext _context;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -24,7 +27,7 @@ namespace DMCW.Service.Services
 
         private string _clientId => Utility.GetUserIdFromClaims(_httpContextAccessor);
 
-        public ProductService(ILogger<ProductService> logger, MongoDBContext context, BlobService blobService,
+        public ProductService(ILogger<ProductService> logger, MongoDBContext context, CloudinaryService blobService,
             IMapper mapper, IHttpContextAccessor httpContextAccessor, ITagsService tagsService)
         {
             _logger = logger;
@@ -88,7 +91,7 @@ namespace DMCW.Service.Services
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
- 
+
         public async Task<bool> Update(string id, string title, string description)
         {
             var filter = Builders<Product>.Filter.Eq(x => x.Id, id);
@@ -98,7 +101,7 @@ namespace DMCW.Service.Services
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
 
-   
+
 
         public async Task<List<ProductSearchResponse>> SearchProductsAsync(string? query)
         {
@@ -161,8 +164,8 @@ namespace DMCW.Service.Services
             List<string> newImageUrls = new List<string>();
             foreach (var base64String in mediaServiceDto.newMediaBase64)
             {
-                var blobClient = await _blobService.UploadToBlobAsync(base64String);
-                newImageUrls.Add(blobClient.AbsoluteUri);
+                var cloudinaryUrl = await _blobService.UploadToCloudinaryAsync(base64String);
+                newImageUrls.Add(cloudinaryUrl);  // Changed from blobClient.AbsoluteUri to cloudinaryUrl
             }
 
             if (product.ImgUrls == null)
@@ -186,75 +189,6 @@ namespace DMCW.Service.Services
             var result = await _context.Products.ReplaceOneAsync(filter, product);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
-        public async Task<SearchResultServiceDto<Product>> AdvanceSearch(SearchFilterServiceDto searchFilterServiceDto)
-        {
-            var queryText = searchFilterServiceDto.SearchFilterRequest?.QueryText;
-            var filtersExist = searchFilterServiceDto.SearchFilterRequest.Filters.Count > 0;
-            var pageSize = searchFilterServiceDto.End - searchFilterServiceDto.Start;
 
-            var (products, totalCount) = await FetchProducts(searchFilterServiceDto, queryText, filtersExist, pageSize);
-
-            if (filtersExist)
-            {
-                products = SearchFilterHelper.ApplyInMemoryFiltering(products, searchFilterServiceDto.SearchFilterRequest.Filters);
-                totalCount = products.Count;
-            }
-
-            return products.Any()
-                ? new SearchResultServiceDto<Product> { Records = products, TotalRecords = totalCount }
-                : null;
-        }
-        private async Task<(List<Product>, int)> FetchProducts(SearchFilterServiceDto searchFilterServiceDto, string queryText, bool filtersExist, int pageSize)
-        {
-            if (!string.IsNullOrEmpty(queryText))
-            {
-                return await FetchProductsWithQuery(queryText);
-            }
-            else if (filtersExist)
-            {
-                return await FetchProductsWithFilters(pageSize);
-            }
-            else
-            {
-                return await FetchAllProducts(pageSize);
-            }
-        }
-
-        private async Task<(List<Product>, int)> FetchProductsWithQuery(string queryText)
-        {
-            var pipeline = QueryBuilder.BuildSearchFilter(queryText, "product_search_index", _clientId, new List<string> { "Title", "Variants.Barcode" });
-            var findQuery = await _context.Products.AggregateAsync();
-
-            var products = await findQuery
-                .AppendStage<Product>(pipeline[0])
-                .AppendStage<Product>(pipeline[1])
-                .SortByDescending(x => x.CreatedAt)
-                .Limit(20)
-                .ToListAsync();
-
-            return (products, products.Count);
-        }
-
-        private async Task<(List<Product>, int)> FetchProductsWithFilters(int pageSize)
-        {
-            var findQuery = await _context.Products.FindAsync(FilterDefinition<Product>.Empty);
-            var products = await findQuery
-                .SortByDescending(x => x.CreatedAt)
-                .Limit(pageSize)
-                .ToListAsync();
-
-            return (products, products.Count);
-        }
-
-        private async Task<(List<Product>, int)> FetchAllProducts(int pageSize)
-        {
-            var findQuery = await _context.Products.FindAsync(FilterDefinition<Product>.Empty);
-            var products = await findQuery
-                .SortByDescending(x => x.CreatedAt)
-                .Limit(pageSize)
-                .ToListAsync();
-
-            return (products, products.Count);
-        }
     }
 }

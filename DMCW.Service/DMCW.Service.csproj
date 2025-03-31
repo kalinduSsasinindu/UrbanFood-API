@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.5" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DMCW.Repository\DMCW.Repository.csproj" />
     <ProjectReference Include="..\DMCW.ServiceInterface\DMCW.ServiceInterface.csproj" />
   </ItemGroup>

@@ -1,4 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using DMCW.API.Dtos;
+using DMCW.Repository.Data.Entities.product;
+using DMCW.Repository.Data.Entities.Search;
+using DMCW.ServiceInterface.Dtos;
+using DMCW.ServiceInterface.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -8,77 +14,93 @@ namespace DMCW.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductController : Controller
+    public class ProductController : ControllerBase
     {
-        // A simple product class for demonstration
-        public class Product
+        private readonly ILogger<ProductController> _logger;
+        private readonly IProductService _productService;
+        private readonly IMapper _mapper;
+
+        public ProductController(ILogger<ProductController> logger, IProductService productService, IMapper mapper)
         {
-            public int Id { get; set; }
-            public string Name { get; set; }
-            public decimal Price { get; set; }
+            _logger = logger;
+            _productService = productService;
+            _mapper = mapper;
         }
 
-        // Mock data of products
-        private static List<Product> products = new List<Product>
+        [Authorize]
+        [HttpGet]
+        public async Task<IEnumerable<ProductSearchResponse>> Get()
         {
-            new Product { Id = 1, Name = "Product 1", Price = 19.99m },
-            new Product { Id = 2, Name = "Product 2", Price = 29.99m },
-            new Product { Id = 3, Name = "Product 3", Price = 39.99m },
-            new Product { Id = 4, Name = "Product 4", Price = 49.99m }
-        };
-
-        // This action requires authorization (user must be logged in)
-       
-        [HttpGet("products")]
-        public async Task<IActionResult> GetProducts()
-        {
-            try
-            {
-                // Simulating some async work (e.g., database call)
-                await Task.Delay(100);
-
-                return Ok(products);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "An error occurred while retrieving products.");
-            }
+            return await _productService.GetAllProductsAsync();
         }
 
-        // A public endpoint for testing (no authorization required)
-        [HttpGet("public-products")]
-        public IActionResult GetPublicProducts()
+        [Authorize]
+        [HttpGet("{id}")]
+        [ActionName(nameof(GetById))]
+        public async Task<ActionResult<Product>> GetById(string id)
         {
-            try
-            {
-                // Return a subset of products without authentication
-                var publicProducts = products.GetRange(0, 2); // Only the first two products
-                return Ok(publicProducts);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "An error occurred while retrieving products.");
-            }
+            var product = await _productService.GetProductByIdAsync(id);
+            return product is not null ? Ok(product) : NotFound();
         }
-        [HttpGet("product/{productId}")]
-        public IActionResult GetProductById(int productId)
+
+        [Authorize]
+        [HttpPost]
+        public async Task<ActionResult> Create(Product product)
         {
-            try
-            {
-                // Find the product by its Id
-                var product = products.FirstOrDefault(p => p.Id == productId);
+            var id = await _productService.CreateProductAsync(product);
+            return CreatedAtAction(nameof(GetById), new { id = id }, product);
+        }
 
-                if (product == null)
-                {
-                    return NotFound($"Product with ID {productId} not found.");
-                }
+        [Authorize]
+        [HttpPut]
+        public async Task<ActionResult> Update(Product product)
+        {
+            var success = await _productService.UpdateProductAsync(product);
+            return success ? Ok() : NotFound();
+        }
 
-                return Ok(product);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, "An error occurred while retrieving the product.");
-            }
+
+
+        [Authorize]
+        [HttpPatch("{id}/titledescription")]
+        public async Task<ActionResult> Update(string id, string title, string description)
+        {
+            var success = await _productService.Update(id, title, description);
+            return success ? Ok() : NotFound();
+        }
+
+
+        [Authorize]
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(string id)
+        {
+            var success = await _productService.DeleteProductAsync(id);
+            return success ? Ok() : NotFound();
+        }
+
+
+        [Authorize]
+        [HttpGet("product")]
+        public async Task<ActionResult<List<Product>>> SearchProduct([FromQuery] string? query)
+        {
+            var result = await _productService.SearchProductsAsync(query);
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPut("media")]
+        public async Task<ActionResult> Update(MediaWebDto mediaWebDto)
+        {
+            var media = _mapper.Map<MediaServiceDto>(mediaWebDto);
+            var success = await _productService.UpdateProductMediaAsync(media);
+            return success ? Ok() : NotFound();
+        }
+
+        [HttpPost("{productId}/add-tag")]
+        public async Task<IActionResult> AddTagToOrder(string productId, List<string> tagNames)
+        {
+            await _productService.AddTagToProduct(productId, tagNames);
+            return Ok();
         }
     }
 }

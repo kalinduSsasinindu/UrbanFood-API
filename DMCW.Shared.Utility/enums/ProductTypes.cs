@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace DMCW.Shared.Utility.enums
 {
-    public enum ProductType
+    public enum ProductTypes
     {
-        Physical = 0,
-        Digital = 1,
-        Service = 2
+        None = 0,
+
     }
 }

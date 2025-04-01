@@ -6,9 +6,6 @@ using DMCW.ServiceInterface.Dtos;
 using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DMCW.API.Controllers
 {
@@ -85,9 +82,9 @@ namespace DMCW.API.Controllers
         [HttpPost("GenerateVariants")]
         public ActionResult<List<ProductVariant>> GenerateVariants([FromBody] List<VariantOption> options)
         {
-            var baseSku = "BASE-SKU"; // Adjust according to your needs
-            var basePrice = 0.0m; // Adjust according to your needs
-            var baseAvailableQuantity = 100; // Adjust according to your needs
+            var baseSku = "BASE-SKU"; 
+            var basePrice = 0.0m; 
+            var baseAvailableQuantity = 100;
 
             var variants = ProductVariantGenerator.GenerateProductVariants(options, baseSku, basePrice, baseAvailableQuantity);
 

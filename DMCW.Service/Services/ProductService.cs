@@ -41,11 +41,12 @@ namespace DMCW.Service.Services
         public async Task<IEnumerable<ProductSearchResponse>> GetAllProductsAsync()
         {
             var res = await _context.Products.Find(FilterDefinition<Product>.Empty)
-                                             .SortByDescending(x => x.CreatedAt)
-                                             .Limit(1000)
-                                             .ToListAsync();
+                                       .SortByDescending(x => x.CreatedAt)
+                                       .Limit(1000)
+                                       .ToListAsync();
 
-            return _mapper.Map<IList<ProductSearchResponse>>(res);
+            // Map each item individually to avoid the collection mapping issue
+            return res.Select(product => _mapper.Map<ProductSearchResponse>(product)).ToList();
         }
 
         public async Task<Product> GetProductByIdAsync(string id)

@@ -111,12 +111,12 @@ namespace DMCW.API.Controllers
 
             var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://oauth2.googleapis.com/token");
             var requestBody = new List<KeyValuePair<string, string>>
-    {
-        new KeyValuePair<string, string>("grant_type", "refresh_token"),
-        new KeyValuePair<string, string>("refresh_token", request.RefreshToken),
-        new KeyValuePair<string, string>("client_id", clientId),
-        new KeyValuePair<string, string>("client_secret", clientSecret)
-    };
+        {
+             new KeyValuePair<string, string>("grant_type", "refresh_token"),
+             new KeyValuePair<string, string>("refresh_token", request.RefreshToken),
+             new KeyValuePair<string, string>("client_id", clientId),
+             new KeyValuePair<string, string>("client_secret", clientSecret)
+        };
 
             tokenRequest.Content = new FormUrlEncodedContent(requestBody);
             var client = _httpClientFactory.CreateClient();

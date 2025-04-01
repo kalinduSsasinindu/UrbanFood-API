@@ -10,5 +10,6 @@ namespace DMCW.Shared.Utility.enums
     {
         None = 0,
 
+
     }
 }

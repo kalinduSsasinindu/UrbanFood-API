@@ -1,6 +1,7 @@
 ﻿using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.Search;
 using DMCW.ServiceInterface.Dtos;
+using DMCW.Shared.Utility.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,5 +23,7 @@ namespace DMCW.ServiceInterface.Interfaces
         Task<List<ProductSearchResponse>> SearchProductsAsync(string? query);
         Task<bool> UpdateProductMediaAsync(MediaServiceDto mediaServiceDto);
         Task AddTagToProduct(string productId, List<string> tagNames);
+
+        Task<List<Product>> GetProductsByProductTypeAsync(ProductType? productType);
     }
 }

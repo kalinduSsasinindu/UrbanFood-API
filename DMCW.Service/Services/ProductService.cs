@@ -7,6 +7,7 @@ using DMCW.Service.Helper;
 using DMCW.Service.Services.blob;
 using DMCW.ServiceInterface.Dtos;
 using DMCW.ServiceInterface.Interfaces;
+using DMCW.Shared.Utility.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -203,6 +204,27 @@ namespace DMCW.Service.Services
             var result = await _context.Products.ReplaceOneAsync(filter, product);
             return result.IsAcknowledged && result.ModifiedCount > 0;
         }
+        public async Task<List<Product>> GetProductsByProductTypeAsync(ProductType? productType)
+        {
+            // Create base filter for non-deleted products
+            var baseFilter = Builders<Product>.Filter.Eq(x => x.IsDeleted, false);
 
+            // If productType is provided, add it to the filter
+            if (productType.HasValue)
+            {
+                baseFilter = baseFilter & Builders<Product>.Filter.Eq(x => x.productType, productType.Value);
+            }
+
+            // Get the base collection directly
+            var collection = _context.GetBaseCollection<Product>("Product");
+
+            // Use the base collection to bypass client ID filtering
+            var result = await collection.Find(baseFilter)
+                .SortByDescending(x => x.CreatedAt)
+                .Limit(1000)
+                .ToListAsync();
+
+            return result;
+        }
     }
 }

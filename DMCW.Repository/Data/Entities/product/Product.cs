@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using DMCW.Shared.Utility.Enums;
 
 namespace DMCW.Repository.Data.Entities.product
 {
@@ -28,6 +29,7 @@ namespace DMCW.Repository.Data.Entities.product
 
         public List<string> ImgUrls { get; set; }
 
+        public ProductType productType { get; set; }
 
         public List<ProductVariant> Variants { get; set; }
         public List<VariantOption> Options { get; set; }

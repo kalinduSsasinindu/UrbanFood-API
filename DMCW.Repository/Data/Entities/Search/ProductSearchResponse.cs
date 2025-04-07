@@ -1,4 +1,5 @@
 ﻿using DMCW.Repository.Data.Entities.product;
+using DMCW.Shared.Utility.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,8 @@ namespace DMCW.Repository.Data.Entities.Search
         public decimal Amount { get; set; }
         public List<string> ImgUrls { get; set; }
         public List<ProductVariant> Variants { get; set; }
+
+        public ProductType productType { get; set; }
 
 
     }

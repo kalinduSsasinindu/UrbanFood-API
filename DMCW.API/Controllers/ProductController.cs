@@ -4,6 +4,7 @@ using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.Search;
 using DMCW.ServiceInterface.Dtos;
 using DMCW.ServiceInterface.Interfaces;
+using DMCW.Shared.Utility.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -131,6 +132,14 @@ namespace DMCW.API.Controllers
         {
             await _productService.AddTagToProduct(productId, tagNames);
             return Ok();
+        }
+
+       
+        [HttpGet("customergetproductsbyproducttype")]
+        public async Task<ActionResult<List<Product>>> GetProductsByProductType([FromQuery] ProductType? productType)
+        {
+            var result = await _productService.GetProductsByProductTypeAsync(productType);
+            return Ok(result);
         }
     }
 }

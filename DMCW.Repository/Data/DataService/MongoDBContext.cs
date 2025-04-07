@@ -29,5 +29,11 @@ namespace DMCW.Repository.Data.DataService
         public FilteredMongoCollection<User> Users => GetFilteredCollection<User>("User");
         public FilteredMongoCollection<Tag> Tags => GetFilteredCollection<Tag>("Tag");
         public FilteredMongoCollection<Sequence> Sequences => GetFilteredCollection<Sequence>("Sequence");
+
+        // Add method to get base collection
+        public IMongoCollection<T> GetBaseCollection<T>(string collectionName) where T : class
+        {
+            return _database.GetCollection<T>(collectionName);
+        }
     }
 }

@@ -14,4 +14,8 @@
     <PackageReference Include="MongoDB.Driver" Version="3.2.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DMCW.Shared.Utility\DMCW.Shared.Utility.csproj" />
+  </ItemGroup>
+
 </Project>

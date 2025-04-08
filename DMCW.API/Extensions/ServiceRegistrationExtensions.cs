@@ -17,7 +17,8 @@ namespace DMCW.API.Extensions
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ITagsService, TagsService>();
-          
+            services.AddScoped<IOrderService, OrderService>();
+
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using DMCW.Repository.Data.Entities;
+using DMCW.Repository.Data.Entities.Order;
 using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.User;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,8 @@ namespace DMCW.Repository.Data.DataService
         public FilteredMongoCollection<User> Users => GetFilteredCollection<User>("User");
         public FilteredMongoCollection<Tag> Tags => GetFilteredCollection<Tag>("Tag");
         public FilteredMongoCollection<Sequence> Sequences => GetFilteredCollection<Sequence>("Sequence");
+
+        public FilteredMongoCollection<Order> Orders => GetFilteredCollection<Order>("Order");
 
         // Add method to get base collection
         public IMongoCollection<T> GetBaseCollection<T>(string collectionName) where T : class

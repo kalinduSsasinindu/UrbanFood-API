@@ -46,7 +46,7 @@ namespace DMCW.API.Controllers
 
 
 
-        [Authorize]
+       
         [HttpPost]
         public async Task<ActionResult> create(Order order)
         {

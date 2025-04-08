@@ -1,6 +1,7 @@
 ﻿using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.Search;
 using DMCW.ServiceInterface.Dtos;
+using DMCW.ServiceInterface.Dtos.product.DMCW.API.Dtos.Product.DMCW.API.Dtos;
 using DMCW.Shared.Utility.Enums;
 using System;
 using System.Collections.Generic;
@@ -23,7 +24,9 @@ namespace DMCW.ServiceInterface.Interfaces
         Task<List<ProductSearchResponse>> SearchProductsAsync(string? query);
         Task<bool> UpdateProductMediaAsync(MediaServiceDto mediaServiceDto);
         Task AddTagToProduct(string productId, List<string> tagNames);
-
+        Task<Product> GetProductDetailsByIdAsync(string id);
         Task<List<Product>> GetProductsByProductTypeAsync(ProductType? productType);
+        Task<ProductReview> AddProductReviewAsync(string productId, string userId, CreateProductReviewDto reviewDto);
+        Task<List<ProductReview>> GetProductReviewsAsync(string productId);
     }
 }

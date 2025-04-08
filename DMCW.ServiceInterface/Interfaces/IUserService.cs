@@ -1,4 +1,5 @@
-﻿using DMCW.ServiceInterface.Dtos.User;
+﻿using DMCW.Repository.Data.Entities.User;
+using DMCW.ServiceInterface.Dtos.User;
 using Microsoft.AspNetCore.Http;
 
 namespace DMCW.ServiceInterface.Interfaces
@@ -14,7 +15,7 @@ namespace DMCW.ServiceInterface.Interfaces
         //Task<bool> UpdateUserRole(string userId, string newRole);
         Task<bool> UpdateUserToSeller(UserServiceDto userDto);
         Task<bool> DeactivateUser(string userId);
-
+        Task<User> GetUserByIdAsync(string userId);
         // Seller-specific methods
         //Task<bool> UpdateSellerProfile(string userId, SellerProfileUpdateDto sellerProfile);
         //Task<bool> VerifySeller(string userId, bool isVerified);

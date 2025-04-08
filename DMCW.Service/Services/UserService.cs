@@ -6,6 +6,7 @@ using DMCW.ServiceInterface.Dtos.User;
 using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace DMCW.Service.Services
@@ -176,6 +177,34 @@ namespace DMCW.Service.Services
 
             await _context.Users.InsertOneAsync(newUser);
             return newUser;
+        }
+        public async Task<User> GetUserByIdAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+            {
+                return null;
+            }
+
+            // Use base collection to bypass client filtering for user lookup
+            var baseCollection = _context.GetBaseCollection<User>("User");
+            
+            // Check if userId is a valid MongoDB ObjectId
+            FilterDefinition<User> filter;
+            if (ObjectId.TryParse(userId, out _))
+            {
+                // If it's a valid ObjectId, search by Id
+                filter = Builders<User>.Filter.Eq(u => u.Id, userId) &
+                        Builders<User>.Filter.Eq(u => u.IsDeleted, false);
+            }
+            else
+            {
+                // If not a valid ObjectId, assume it's a ClientId
+                filter = Builders<User>.Filter.Eq(u => u.ClientId, userId) &
+                        Builders<User>.Filter.Eq(u => u.IsDeleted, false);
+            }
+
+            var user = await baseCollection.Find(filter).FirstOrDefaultAsync();
+            return user;
         }
         #endregion
     }

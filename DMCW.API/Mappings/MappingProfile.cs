@@ -2,6 +2,7 @@
 using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.Search;
 using DMCW.Repository.Data.Entities.User;
+using DMCW.ServiceInterface.Dtos.product.DMCW.API.Dtos.Product.DMCW.API.Dtos;
 using DMCW.ServiceInterface.Dtos.User;
 
 namespace DMCW.API.Mappings
@@ -23,7 +24,7 @@ namespace DMCW.API.Mappings
             CreateMap<SellerProfileDto, SellerProfile>();
             CreateMap<StoreDetailsDto, StoreDetails>();
             CreateMap<SellerReviewDto, SellerReview>();
-
+            CreateMap<ProductReview, ProductReviewDto>();
             CreateMap<Product, ProductSearchResponse>();
         }
     }

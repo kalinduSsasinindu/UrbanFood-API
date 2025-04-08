@@ -3,6 +3,7 @@ using DMCW.API.Dtos;
 using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.Search;
 using DMCW.ServiceInterface.Dtos;
+using DMCW.ServiceInterface.Dtos.product.DMCW.API.Dtos.Product.DMCW.API.Dtos;
 using DMCW.ServiceInterface.Interfaces;
 using DMCW.Shared.Utility.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -140,6 +141,53 @@ namespace DMCW.API.Controllers
         {
             var result = await _productService.GetProductsByProductTypeAsync(productType);
             return Ok(result);
+        }
+
+        [HttpGet("customergetproductdetailsbyid/{id}")]
+        public async Task<ActionResult<Product>> GetProductDetailsById(string id)
+        {
+            var result = await _productService.GetProductDetailsByIdAsync(id);
+            return result is not null ? Ok(result) : NotFound();
+        }
+
+        [HttpPost("{productId}/reviews")]
+        public async Task<ActionResult> AddReview(string productId, [FromBody] CreateProductReviewDto reviewDto)
+        {
+            if (string.IsNullOrEmpty(productId) || reviewDto == null)
+            {
+                return BadRequest("Product ID and review data are required");
+            }
+
+            // Get user ID from ClientId header
+            string clientId = null;
+            if (Request.Headers.TryGetValue("ClientId", out var clientIdValue))
+            {
+                clientId = clientIdValue.FirstOrDefault();
+            }
+
+            if (string.IsNullOrEmpty(clientId))
+            {
+                return Unauthorized("User must be logged in to submit reviews");
+            }
+
+            try
+            {
+                // Pass the clientId (not userId) to the service
+                var reviewId = await _productService.AddProductReviewAsync(productId, clientId, reviewDto);
+                return CreatedAtAction(nameof(GetProductDetailsById), new { id = productId }, new { ReviewId = reviewId });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding review to product {ProductId}", productId);
+                return StatusCode(500, "An error occurred while adding the review");
+            }
+        }
+
+        [HttpGet("{productId}/reviews")]
+        public async Task<ActionResult<List<ProductReviewDto>>> GetProductReviews(string productId)
+        {
+            var reviews = await _productService.GetProductReviewsAsync(productId);
+            return Ok(reviews);
         }
     }
 }

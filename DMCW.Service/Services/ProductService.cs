@@ -2,6 +2,7 @@
 using DMCW.Repository.Data.DataService;
 using DMCW.Repository.Data.Entities.product;
 using DMCW.Repository.Data.Entities.Search;
+using DMCW.Repository.Data.Entities.User;
 using DMCW.Repository.Helper;
 using DMCW.Service.Helper;
 using DMCW.Service.Services.blob;
@@ -11,8 +12,10 @@ using DMCW.Shared.Utility.Enums;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using Tag = DMCW.Repository.Data.Entities.Tags.Tag;
+
 
 
 namespace DMCW.Service.Services
@@ -25,11 +28,12 @@ namespace DMCW.Service.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ITagsService _tagsService;
+        private readonly IUserService _userService;
 
         private string _clientId => Utility.GetUserIdFromClaims(_httpContextAccessor);
 
         public ProductService(ILogger<ProductService> logger, MongoDBContext context, CloudinaryService blobService,
-            IMapper mapper, IHttpContextAccessor httpContextAccessor, ITagsService tagsService)
+            IMapper mapper, IHttpContextAccessor httpContextAccessor, ITagsService tagsService, IUserService userService)
         {
             _logger = logger;
             _blobService = blobService;
@@ -37,6 +41,7 @@ namespace DMCW.Service.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _tagsService = tagsService;
+            _userService =userService;
         }
 
         public async Task<IEnumerable<ProductSearchResponse>> GetAllProductsAsync()
@@ -225,6 +230,113 @@ namespace DMCW.Service.Services
                 .ToListAsync();
 
             return result;
+        }
+        public async Task<Product> GetProductDetailsByIdAsync(string id)
+        {
+            // Create base filter for non-deleted products with the specific ID
+            var filter = Builders<Product>.Filter.Eq(x => x.Id, id) &
+                         Builders<Product>.Filter.Eq(x => x.IsDeleted, false);
+
+            // Get the base collection directly to bypass client ID filtering
+            var collection = _context.GetBaseCollection<Product>("Product");
+
+            // Use the base collection to retrieve the product
+            var result = await collection.Find(filter).FirstOrDefaultAsync();
+
+            return result;
+        }
+        public async Task<ProductReview> AddProductReviewAsync(string productId, string userId, ServiceInterface.Dtos.product.DMCW.API.Dtos.Product.DMCW.API.Dtos.CreateProductReviewDto reviewDto)
+        {
+            // Get the user to extract name and profile picture
+            var user = await _userService.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                throw new Exception("User not found");
+            }
+
+            // For adding a review, we need to bypass the client filtering to allow customers
+            // to review products from any seller
+            var baseCollection = _context.GetBaseCollection<Product>("Product");
+            var productFilter = Builders<Product>.Filter.Eq(x => x.Id, productId) &
+                               Builders<Product>.Filter.Eq(x => x.IsDeleted, false);
+            var product = await baseCollection.Find(productFilter).FirstOrDefaultAsync();
+
+            if (product == null)
+            {
+                throw new Exception("Product not found");
+            }
+
+            // Process review images if any
+            List<string> reviewImageUrls = new List<string>();
+            if (reviewDto.ReviewImages != null && reviewDto.ReviewImages.Count > 0)
+            {
+                foreach (var base64Image in reviewDto.ReviewImages)
+                {
+                    var imageUrl = await _blobService.UploadToCloudinaryAsync(base64Image);
+                    reviewImageUrls.Add(imageUrl);
+                }
+            }
+
+            // Create the review
+            var review = new ProductReview
+            {
+                Id = ObjectId.GenerateNewId().ToString(),
+                ProductId = productId,
+                ReviewerId = userId,
+                ReviewerName = user.Name,
+                ReviewerProfilePicture = user.ProfilePictureUrl,
+                Rating = reviewDto.Rating,
+                Comment = reviewDto.Comment,
+                ReviewImages = reviewImageUrls,
+                LikesCount = 0,
+                IsFeatured = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsVerified = false,
+                IsDeleted = false
+            };
+
+            // Initialize ProductReviews collection if needed
+            if (product.ProductReviews == null)
+            {
+                product.ProductReviews = new List<ProductReview>();
+            }
+
+            // Add the review to the product
+            product.ProductReviews.Add(review);
+
+            // Update rating statistics
+            product.UpdateRatingStats();
+
+            // Update the product using the base collection to bypass client filtering
+            var updateResult = await baseCollection.ReplaceOneAsync(productFilter, product);
+
+            if (!updateResult.IsAcknowledged || updateResult.ModifiedCount == 0)
+            {
+                throw new Exception("Failed to update product with review");
+            }
+
+            return review;
+        }
+        public async Task<List<ProductReview>> GetProductReviewsAsync(string productId)
+        {
+            // Get the product
+            var filter = Builders<Product>.Filter.Eq(x => x.Id, productId);
+            var product = await _context.Products.Find(filter).FirstOrDefaultAsync();
+
+            if (product == null || product.ProductReviews == null || product.ProductReviews.Count == 0)
+            {
+                return new List<ProductReview>();
+            }
+
+            // Return only active reviews
+            var reviews = product.ProductReviews
+                .Where(r => r.IsDeleted != true)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToList();
+
+            return reviews;
         }
     }
 }

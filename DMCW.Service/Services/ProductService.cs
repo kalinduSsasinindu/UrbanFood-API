@@ -274,7 +274,11 @@ namespace DMCW.Service.Services
                 foreach (var base64Image in reviewDto.ReviewImages)
                 {
                     var imageUrl = await _blobService.UploadToCloudinaryAsync(base64Image);
-                    reviewImageUrls.Add(imageUrl);
+                    // Only add non-empty image URLs
+                    if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        reviewImageUrls.Add(imageUrl);
+                    }
                 }
             }
 

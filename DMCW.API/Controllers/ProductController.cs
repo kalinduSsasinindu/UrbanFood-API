@@ -189,5 +189,12 @@ namespace DMCW.API.Controllers
             var reviews = await _productService.GetProductReviewsAsync(productId);
             return Ok(reviews);
         }
+
+        [HttpGet("{productId}/all-reviews")]
+        public async Task<ActionResult<List<ProductReview>>> GetAllProductReviews(string productId)
+        {
+            var reviews = await _productService.GetAllProductReviewsAsync(productId);
+            return Ok(reviews);
+        }
     }
 }

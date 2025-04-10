@@ -342,5 +342,30 @@ namespace DMCW.Service.Services
 
             return reviews;
         }
+        public async Task<List<ProductReview>> GetAllProductReviewsAsync(string productId)
+        {
+            // Get the product using the base collection to bypass user filtering
+            var baseCollection = _context.GetBaseCollection<Product>("Product");
+            var filter = Builders<Product>.Filter.And(
+                Builders<Product>.Filter.Eq(x => x.Id, productId),
+                Builders<Product>.Filter.Eq("IsDeleted", false)
+            );
+
+            var product = await baseCollection.Find(filter).FirstOrDefaultAsync();
+
+            if (product == null || product.ProductReviews == null || product.ProductReviews.Count == 0)
+            {
+                return new List<ProductReview>();
+            }
+
+            // Return only active reviews
+            var reviews = product.ProductReviews
+                .Where(r => r.IsDeleted != true)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToList();
+
+            return reviews;
+        }
+
     }
 }

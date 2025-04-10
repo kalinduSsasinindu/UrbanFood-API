@@ -28,5 +28,6 @@ namespace DMCW.ServiceInterface.Interfaces
         Task<List<Product>> GetProductsByProductTypeAsync(ProductType? productType);
         Task<ProductReview> AddProductReviewAsync(string productId, string userId, CreateProductReviewDto reviewDto);
         Task<List<ProductReview>> GetProductReviewsAsync(string productId);
+        Task<List<ProductReview>> GetAllProductReviewsAsync(string productId);
     }
 }

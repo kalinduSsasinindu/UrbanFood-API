@@ -40,6 +40,12 @@ namespace DMCW.Repository.Data.Entities.Order
         [BsonElement("VariantId"), BsonRepresentation(BsonType.Int32)]
         public int VariantId { get; set; }
 
+        [BsonElement("SellerId"), BsonRepresentation(BsonType.String)]
+        public string SellerId { get; set; }
+
+        [BsonElement("SellerName"), BsonRepresentation(BsonType.String)]
+        public string SellerName { get; set; }
+
         //[BsonElement("TotalDiscount"), BsonRepresentation(BsonType.Decimal128)]
         //public decimal TotalDiscount { get; set; }
     }

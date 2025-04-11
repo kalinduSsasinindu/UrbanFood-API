@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Actions;
 using DMCW.API.Dtos.Order;
+using DMCW.Repository.Data.DataService;
 using DMCW.Repository.Data.Entities.Order;
 using DMCW.Repository.Data.Entities.Search;
 using DMCW.ServiceInterface.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 
 namespace DMCW.API.Controllers
 {
@@ -18,13 +20,20 @@ namespace DMCW.API.Controllers
         private readonly IOrderService _orderService;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
+        private readonly MongoDBContext _context;
 
-        public OrderController(ILogger<OrderController> logger, IOrderService orderService, IMapper mapper, IUserService userService)
+        public OrderController(
+            ILogger<OrderController> logger, 
+            IOrderService orderService, 
+            IMapper mapper, 
+            IUserService userService,
+            MongoDBContext context)
         {
             _logger = logger;
             _orderService = orderService;
             _mapper = mapper;
             _userService = userService;
+            _context = context;
         }
 
         [Authorize]
@@ -154,6 +163,134 @@ namespace DMCW.API.Controllers
         {
             await _orderService.AddTagToOrder(orderId, tagNames);
             return Ok();
+        }
+
+        [Authorize]
+        [HttpGet("seller")]
+        public async Task<ActionResult<List<OrderSearchResponse>>> GetSellerOrders()
+        {
+            try
+            {
+                // Get current user information
+                var user = await _userService.GetUserByEmail();
+                
+                // Check if user is a seller
+                if (user.UserRole != "Seller")
+                {
+                    return Forbid("Only sellers can access seller orders");
+                }
+                
+                // Get orders for this seller
+                var orders = await _orderService.GetOrdersBySellerId(user.ClientId);
+                return Ok(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving seller orders");
+                return StatusCode(500, "An error occurred while retrieving orders");
+            }
+        }
+
+        [Authorize]
+        [HttpGet("seller/{id}")]
+        public async Task<ActionResult<Order>> GetSellerOrderDetail(string id)
+        {
+            try
+            {
+                // Get current user information
+                var user = await _userService.GetUserByEmail();
+                
+                // Check if user is a seller
+                if (user.UserRole != "Seller")
+                {
+                    return Forbid("Only sellers can access seller orders");
+                }
+                
+                // Get the full order
+                var order = await _orderService.GetById(id);
+                if (order == null)
+                {
+                    return NotFound();
+                }
+                
+                // Check if this seller has any line items in this order
+                bool hasSellerItems = order.LineItems.Any(li => li.SellerId == user.ClientId);
+                if (!hasSellerItems)
+                {
+                    return NotFound("No items from this seller in the specified order");
+                }
+                
+                // Filter line items to only show this seller's items
+                order.LineItems = order.LineItems
+                    .Where(li => li.SellerId == user.ClientId)
+                    .ToList();
+                
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving seller order details");
+                return StatusCode(500, "An error occurred while retrieving order details");
+            }
+        }
+
+        [Authorize]
+        [HttpGet("customer")]
+        public async Task<ActionResult<List<OrderSearchResponse>>> GetCustomerOrders()
+        {
+            try
+            {
+                // Get current user information
+                var user = await _userService.GetUserByEmail();
+                
+                // Filter orders by client ID to get this customer's orders
+                var filter = Builders<Order>.Filter.Eq(o => o.ClientId, user.ClientId);
+                var orders = await _context.Orders
+                    .Find(filter)
+                    .SortByDescending(x => x.CreatedAt)
+                    .ToListAsync();
+                
+                var orderResponses = _mapper.Map<List<OrderSearchResponse>>(orders);
+                return Ok(orderResponses);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving customer orders");
+                return StatusCode(500, "An error occurred while retrieving orders");
+            }
+        }
+
+        [Authorize]
+        [HttpGet("customer/{id}/grouped")]
+        public async Task<ActionResult<List<Order>>> GetCustomerOrderGroupedBySeller(string id)
+        {
+            try
+            {
+                // Get current user information
+                var user = await _userService.GetUserByEmail();
+                
+                // Get the order
+                var order = await _orderService.GetById(id);
+                if (order == null)
+                {
+                    return NotFound();
+                }
+                
+                // Check if this user owns the order
+                if (order.ClientId != user.ClientId)
+                {
+                    return Forbid("You don't have permission to view this order");
+                }
+                
+                // Get the order grouped by seller
+                var groupedOrders = await _orderService.GetOrderGroupedBySeller(id);
+                return Ok(groupedOrders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving grouped order");
+                return StatusCode(500, "An error occurred while retrieving the order");
+            }
         }
     }
 }

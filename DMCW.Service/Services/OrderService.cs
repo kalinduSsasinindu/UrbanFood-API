@@ -13,6 +13,7 @@ using DMCW.Repository.Data.Entities.Order;
 using Tag = DMCW.Repository.Data.Entities.Tags.Tag;
 using DMCW.Service.Services.blob;
 using DMCW.Repository.Data.Entities.Search;
+using DMCW.Repository.Data.Entities.User;
 namespace DMCW.Service.Services
 {
     public class OrderService : IOrderService
@@ -114,6 +115,18 @@ namespace DMCW.Service.Services
                 var product = products.FirstOrDefault(p => p.Id == lineItem.ProductId);
                 var productVariant = GetProductVariant(product, lineItem.VariantId);
 
+                // Set the seller information for each line item
+                lineItem.SellerId = product.ClientId;
+                
+                // Get seller name from user service
+                try {
+                    var seller = await _context.Users.Find(Builders<User>.Filter.Eq(u => u.ClientId, product.ClientId)).FirstOrDefaultAsync();
+                    lineItem.SellerName = seller?.Name ?? "Unknown Seller";
+                }
+                catch {
+                    lineItem.SellerName = "Unknown Seller";
+                }
+
                 ValidateStockAvailability(productVariant, lineItem.Quantity);
 
                 UpdateStockQuantities(productVariant, lineItem.Quantity);
@@ -125,10 +138,13 @@ namespace DMCW.Service.Services
         }
         private async Task UpdateProductStock(Product product)
         {
+            // Get the base collection directly to bypass clientId filtering
+            var baseCollection = _context.GetBaseCollection<Product>("Product");
+            
             var updateFilter = Builders<Product>.Filter.Eq(p => p.Id, product.Id);
             var updateDefinition = Builders<Product>.Update.Set(p => p.Variants, product.Variants);
 
-            var result = await _context.Products.UpdateOneAsync(updateFilter, updateDefinition);
+            var result = await baseCollection.UpdateOneAsync(updateFilter, updateDefinition);
 
             if (result.ModifiedCount == 0)
             {
@@ -646,6 +662,114 @@ namespace DMCW.Service.Services
             var update = Builders<Order>.Update.Set(x => x.Tags, tagNamesToAdd);
 
             await _context.Orders.UpdateOneAsync(orderFilter, update);
+        }
+
+        public async Task<List<OrderSearchResponse>> GetOrdersBySellerId(string sellerId)
+        {
+            // Find all orders that have at least one line item with the specified sellerId
+            var filter = Builders<Order>.Filter.ElemMatch(
+                o => o.LineItems, 
+                lineItem => lineItem.SellerId == sellerId
+            );
+            
+            var orders = await _context.Orders
+                .Find(filter)
+                .SortByDescending(x => x.CreatedAt)
+                .ToListAsync();
+            
+            var orderResponses = _mapper.Map<List<OrderSearchResponse>>(orders);
+            
+            return orderResponses;
+        }
+
+        public async Task<List<Order>> GetOrdersWithLineItemsBySellerId(string sellerId)
+        {
+            // Find all orders that have at least one line item with the specified sellerId
+            var filter = Builders<Order>.Filter.ElemMatch(
+                o => o.LineItems, 
+                lineItem => lineItem.SellerId == sellerId
+            );
+            
+            var orders = await _context.Orders
+                .Find(filter)
+                .SortByDescending(x => x.CreatedAt)
+                .ToListAsync();
+            
+            // For each order, filter line items to only include those belonging to this seller
+            foreach (var order in orders)
+            {
+                // Create a new list with only the line items for this seller
+                var sellerLineItems = order.LineItems
+                    .Where(li => li.SellerId == sellerId)
+                    .ToList();
+                
+                // Replace the original line items with the filtered ones
+                order.LineItems = sellerLineItems;
+            }
+            
+            return orders;
+        }
+
+        public async Task<List<Order>> GetOrderGroupedBySeller(string orderId)
+        {
+            var order = await GetById(orderId);
+            if (order == null)
+            {
+                return new List<Order>();
+            }
+            
+            // Group line items by seller
+            var lineItemsBySeller = order.LineItems
+                .GroupBy(li => li.SellerId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            
+            // Create a mini-order for each seller
+            var sellerOrders = new List<Order>();
+            foreach (var sellerId in lineItemsBySeller.Keys)
+            {
+                var sellerLineItems = lineItemsBySeller[sellerId];
+                
+                // Create a copy of the original order with just this seller's items
+                var sellerOrder = new Order
+                {
+                    Id = order.Id,
+                    Name = order.Name,
+                    CreatedAt = order.CreatedAt,
+                    ClientId = order.ClientId,
+                    FulfillmentStatus = order.FulfillmentStatus,
+                    FinancialStatus = order.FinancialStatus,
+                    Note = order.Note,
+                    Phone = order.Phone,
+                    ShippingAddress = order.ShippingAddress,
+                    Customer = order.Customer,
+                    LineItems = sellerLineItems,
+                    PaymentInfo = order.PaymentInfo,
+                    TimeLineDetails = order.TimeLineDetails,
+                    Tags = order.Tags,
+                    // Calculate subtotals for just this seller's items
+                    SubtotalPrice = sellerLineItems.Sum(li => li.Price * li.Quantity),
+                    TotalLineItemsPrice = sellerLineItems.Sum(li => li.Price * li.Quantity),
+                    // Keep the shipping and discounts the same
+                    TotalShippingPrice = order.TotalShippingPrice,
+                    TotalDiscountPrice = order.TotalDiscountPrice
+                };
+                
+                // Calculate total price for this seller's portion
+                sellerOrder.TotalPrice = sellerOrder.TotalLineItemsPrice + sellerOrder.TotalShippingPrice - sellerOrder.TotalDiscountPrice;
+                
+                // Add seller info to the order
+                try {
+                    var seller = await _context.Users.Find(Builders<User>.Filter.Eq(u => u.ClientId, sellerId)).FirstOrDefaultAsync();
+                    sellerOrder.Note += $" (Seller: {seller?.Name ?? "Unknown"})";
+                }
+                catch {
+                    // Ignore any errors getting seller info
+                }
+                
+                sellerOrders.Add(sellerOrder);
+            }
+            
+            return sellerOrders;
         }
     }
 }

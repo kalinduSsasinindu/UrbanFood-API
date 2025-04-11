@@ -16,6 +16,11 @@ namespace DMCW.ServiceInterface.Interfaces
         Task<List<Order>> GetByIds(List<string> ids);
         Task<Order> GetById(string id);
         Task<List<OrderSearchResponse>> SearchOrdersAsync(string? query);
+        
+        // Seller-specific operations
+        Task<List<OrderSearchResponse>> GetOrdersBySellerId(string sellerId);
+        Task<List<Order>> GetOrdersWithLineItemsBySellerId(string sellerId);
+        Task<List<Order>> GetOrderGroupedBySeller(string orderId);
 
         // Create operations
         Task Create(Order order);

@@ -19,5 +19,7 @@ namespace DMCW.Repository.Data.Entities.Customer
         [BsonElement("Phone"), BsonRepresentation(BsonType.String)]
         public string Phone { get; set; }
 
+       
+
     }
 }

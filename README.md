@@ -12,6 +12,27 @@ This project was developed as a coursework assignment for the Database Managemen
 
 > **Note:** This is a work in progress. While the database structure and basic CRUD operations are implemented, some advanced features and optimizations are still under development.
 
+## Current Implementation Status
+
+### Database Implementation
+- **MongoDB**: Fully implemented and actively used in the project
+  - All CRUD operations are functional
+  - Generic repository pattern implemented
+  - Proper dependency injection setup
+  - Working with all entity types
+
+- **Oracle**: Partially implemented but not currently in use
+  - OracleDBContext and OracleRepository classes are implemented
+  - Table creation scripts are ready
+  - Facing issues with Oracle Cloud connection
+  - Currently using MongoDB as the primary database
+
+### Technical Details
+- The project uses a generic repository pattern for MongoDB
+- Entity mapping is handled through the `FilteredMongoCollection<T>` class
+- Services are injected with `MongoDBContext` for data access
+- Oracle implementation is ready but requires Oracle Cloud configuration
+
 ## Project Overview
 
 DMCW is a modern e-commerce platform that allows users to:
@@ -68,7 +89,7 @@ The project implements a hybrid database approach:
 - Real-time updates
 - Secure authentication flow
 
-> **Note:** The Angular frontend is available in a separate repository: [DMCW-Frontend](https://github.com/your-username/dmcw-frontend)
+> **Note:** The Angular frontend is available in a separate repository: [DMCW-Frontend](https://github.com/kalinduSsasinindu/Urban-Food-Web)
 
 ## Features
 
@@ -99,6 +120,80 @@ The project implements a hybrid database approach:
   - Store management
   - Order fulfillment
   - Performance analytics
+
+## Authentication Implementation
+
+### Google OAuth2 Authentication
+
+The project implements Google OAuth2 as the primary authentication mechanism. This provides a secure and user-friendly way to authenticate users.
+
+#### Features
+- Secure Google OAuth2 integration
+- JWT token generation and validation
+- Role-based access control
+- Refresh token support
+- Automatic user profile creation
+
+#### Implementation Details
+1. **Configuration**
+   ```json
+   "Authentication": {
+     "Google": {
+       "ClientId": "your-google-client-id",
+       "ClientSecret": "your-google-client-secret",
+       "WebRedirectLocalUrl": "http://localhost:4200/",
+       "WebRedirectUrl": "http://localhost:4200/"
+     }
+   }
+   ```
+
+2. **Authentication Flow**
+   - User clicks "Sign in with Google"
+   - Redirected to Google consent screen
+   - After consent, Google redirects back with authorization code
+   - Backend exchanges code for tokens
+   - JWT token generated and returned to frontend
+   - Frontend stores token for subsequent requests
+
+3. **Security Features**
+   - Secure token storage
+   - Token expiration handling
+   - Automatic token refresh
+   - CSRF protection
+   - Secure cookie handling
+
+4. **User Management**
+   - Automatic user profile creation on first login
+   - Role assignment based on Google account
+   - Profile information synchronization
+   - Session management
+
+#### Usage in Services
+```csharp
+[Authorize]
+public class YourService
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    
+    public YourService(IHttpContextAccessor httpContextAccessor)
+    {
+        _httpContextAccessor = httpContextAccessor;
+    }
+    
+    public string GetCurrentUserId()
+    {
+        return _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+}
+```
+
+#### Frontend Integration
+The Angular frontend includes:
+- Google OAuth2 client integration
+- Token management service
+- Auth guard for protected routes
+- HTTP interceptor for token injection
+- User profile management
 
 ## Getting Started
 
@@ -143,7 +238,7 @@ dotnet run
 ```
 
 ### Frontend Setup
-1. Clone the frontend repository: [DMCW-Frontend](https://github.com/your-username/dmcw-frontend)
+1. Clone the frontend repository: [DMCW-Frontend](https://github.com/kalinduSsasinindu/Urban-Food-Web)
 2. Install dependencies:
 ```bash
 npm install
@@ -168,6 +263,85 @@ ng serve
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
+## Oracle Database Implementation Guide
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+### Setting Up OracleDBContext in Services
+
+1. **Dependency Injection Setup**
+   In your `Program.cs` or `Startup.cs`, add the OracleDBContext service:
+   ```csharp
+   builder.Services.AddScoped<OracleDBContext>();
+   ```
+
+2. **Using OracleDBContext in Services**
+   Inject OracleDBContext into your service classes:
+   ```csharp
+   public class YourService
+   {
+       private readonly OracleDBContext _oracleContext;
+       
+       public YourService(OracleDBContext oracleContext)
+       {
+           _oracleContext = oracleContext;
+       }
+   }
+   ```
+
+3. **Accessing Repositories**
+   Use the context to access repositories for different entities:
+   ```csharp
+   // Get products repository
+   var productsRepo = _oracleContext.Products;
+   
+   // Get users repository
+   var usersRepo = _oracleContext.Users;
+   
+   // Get orders repository
+   var ordersRepo = _oracleContext.Orders;
+   ```
+
+4. **Performing CRUD Operations**
+   ```csharp
+   // Find operations
+   var product = await productsRepo.FindOneAsync("WHERE ID = :id", 
+       new Dictionary<string, object> { { "id", productId } });
+   
+   var products = await productsRepo.FindAsync("WHERE PRICE > :price", 
+       new Dictionary<string, object> { { "price", 100 } });
+   
+   // Insert operations
+   var newProductId = await productsRepo.InsertOneAsync(newProduct);
+   
+   // Update operations
+   var updates = new Dictionary<string, object>
+   {
+       { "Price", 150 },
+       { "Name", "Updated Product" }
+   };
+   await productsRepo.UpdateOneAsync(productId, updates);
+   
+   // Delete operations
+   await productsRepo.SoftDeleteOneAsync(productId);
+   ```
+
+5. **Direct SQL Execution**
+   For complex queries, use the direct execution methods:
+   ```csharp
+   // Execute query
+   var result = await _oracleContext.ExecuteQueryAsync(
+       "SELECT * FROM PRODUCTS WHERE PRICE > :price",
+       new OracleParameter("price", 100));
+   
+   // Execute non-query
+   await _oracleContext.ExecuteNonQueryAsync(
+       "UPDATE PRODUCTS SET PRICE = :price WHERE ID = :id",
+       new OracleParameter("price", 150),
+       new OracleParameter("id", productId));
+   ```
+
+### Important Notes
+- Ensure your Oracle connection string is properly configured in `appsettings.json`
+- The Oracle implementation includes soft delete functionality
+- All queries automatically include user filtering for user-owned entities
+- Use transactions for complex operations that require atomicity
+

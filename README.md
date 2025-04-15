@@ -1,6 +1,16 @@
 # DMCW (Digital Marketplace for Creative Works)
 
-A full-stack e-commerce platform built with .NET Core and Angular, supporting both MongoDB and Oracle databases.
+A full-stack e-commerce platform built with .NET Core and Angular, supporting both MongoDB and Oracle databases. This project was developed as part of my university's Database Management module, showcasing the implementation of dual database systems in a real-world application.
+
+## Project Context
+
+This project was developed as a coursework assignment for the Database Management module at NIBM. The primary objective was to demonstrate proficiency in:
+- Database design and implementation
+- Working with different types of databases (NoSQL and Relational)
+- Database integration in a real-world application
+- Performance optimization and data modeling
+
+> **Note:** This is a work in progress. While the database structure and basic CRUD operations are implemented, some advanced features and optimizations are still under development.
 
 ## Project Overview
 
@@ -11,6 +21,33 @@ DMCW is a modern e-commerce platform that allows users to:
 - Review products and sellers
 - Handle multiple payment methods
 - Manage product variants and inventory
+
+## Technical Insights
+
+### Database Architecture
+The project implements a hybrid database approach:
+- **MongoDB**: Used for flexible document storage, particularly for:
+  - Product catalogs with varying attributes
+  - User-generated content (reviews, comments)
+  - Session data and caching
+- **Oracle**: Used for structured data requiring:
+  - Complex transactions
+  - Data integrity constraints
+  - ACID compliance
+  - Complex queries and reporting
+
+### Implementation Challenges
+- **Data Synchronization**: Maintaining consistency between MongoDB and Oracle
+- **Transaction Management**: Handling distributed transactions across different database systems
+- **Performance Optimization**: Balancing the strengths of both databases
+- **Schema Design**: Creating flexible yet efficient data models
+
+### Future Improvements
+1. **Data Synchronization**: Implement a robust synchronization mechanism between MongoDB and Oracle
+2. **Caching Layer**: Add Redis for improved performance
+3. **Search Optimization**: Implement Elasticsearch for better product search
+4. **Microservices**: Break down into smaller, focused services
+5. **Real-time Updates**: Implement WebSocket for live updates
 
 ## Tech Stack
 
